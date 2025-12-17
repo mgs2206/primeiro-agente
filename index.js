@@ -1,48 +1,41 @@
-
-
+require('dotenv').config();
+const express = require('express'); // O novo "carteiro"
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const readline = require('readline').createInterface({
-    input: process.stdin,
-    output: process.stdout
-});
 
-const genAI = new GoogleGenerativeAI("SUA_CHAVE_AQUI"); // <--- Coloque sua chave!
+const app = express();
 
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ 
     model: "gemini-3-flash-preview",
-    systemInstruction: "Você é um consultor sarcástico. Lembre-se do contexto da conversa."
+    systemInstruction: "Você é um consultor sarcástico. Seja breve."
 });
 
-// 1. A MÁGICA: Iniciamos uma sessão de chat vazia.
-// O objeto 'chat' vai guardar o histórico automaticamente na memória RAM.
-const chat = model.startChat({
-    history: [], // Começa vazio
-});
+// Mantemos a memória global para este teste simples
+const chat = model.startChat({ history: [] });
 
-async function iniciarChat() {
-    readline.question('🗣️  Você: ', async (mensagem) => {
+// Criamos uma "Rota". É como um endereço específico no seu site.
+// Quando alguém acessar seu-site.com/chat, isso aqui acontece:
+app.get('/chat', async (req, res) => {
+    // 1. Pegamos a mensagem que veio na URL (ex: ?msg=Ola)
+    const mensagemUsuario = req.query.msg;
+
+    if (!mensagemUsuario) {
+        return res.send("Erro: Digite uma mensagem na URL! Exemplo: /chat?msg=Ola");
+    }
+
+    try {
+        // 2. O Agente pensa
+        const resultado = await chat.sendMessage(mensagemUsuario);
+        const resposta = resultado.response.text();
         
-        if (mensagem.toLowerCase() === "sair") {
-            console.log("👋 Encerrando...");
-            readline.close();
-            return;
-        }
+        // 3. O servidor responde para o navegador
+        res.send(resposta);
+    } catch (erro) {
+        res.send("Erro na IA: " + erro.message);
+    }
+});
 
-        try {
-            // 2. Usamos 'chat.sendMessage' em vez de usar o 'model' direto
-            const resultado = await chat.sendMessage(mensagem);
-            const resposta = resultado.response.text();
-            
-            console.log(`🤖 Consultor: ${resposta}\n`);
-            
-            iniciarChat(); // Continua a conversa
-            
-        } catch (erro) {
-            console.log("Erro: " + erro.message);
-            readline.close();
-        }
-    });
-}
-
-console.log("--- CHAT V2.0 (MODELO NOVO) ---");
-iniciarChat();
+// O servidor fica ouvindo na porta 3000
+app.listen(3000, () => {
+    console.log("🚀 Servidor rodando! Acesse: http://localhost:3000/chat?msg=Ola");
+});
