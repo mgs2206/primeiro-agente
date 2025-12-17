@@ -44,5 +44,5 @@ async function iniciarChat() {
     });
 }
 
-console.log("--- CHAT COM MEMÓRIA INICIADO ---");
+console.log("--- CHAT V2.0 (MODELO NOVO) ---");
 iniciarChat();
