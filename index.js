@@ -6,7 +6,7 @@ const readline = require('readline').createInterface({
     output: process.stdout
 });
 
-const genAI = new GoogleGenerativeAI("AIzaSyDRE8uUZN6-hHfkl2xYP3i7lqt9aI7jEAQ"); // <--- Coloque sua chave!
+const genAI = new GoogleGenerativeAI("SUA_CHAVE_AQUI"); // <--- Coloque sua chave!
 
 const model = genAI.getGenerativeModel({ 
     model: "gemini-3-flash-preview",
